@@ -1,0 +1,53 @@
+% monitoring_system.tex
+\textbf{\Large Actors}
+\begin{itemize}
+    \item \textbf{Primary Actor:} Refinery Operator
+    \item \textbf{Secondary Actors:} UAV, UGV
+\end{itemize}
+
+\textbf{\Large Basic Flow}
+\begin{itemize}
+    \item \textbf{Operator Initiates Monitoring:}
+    \begin{itemize}
+        \item Operator starts the monitoring system, which triggers the UAV to begin its patrol.
+    \end{itemize}
+%second point
+    \item \textbf{UAV Patrols Refinery:}
+    \begin{itemize}
+        \item UAV autonomously flies predefined routes, capturing real-time video and sensor data.
+        \item UAV uses computer vision algorithms to detect anomalies, such as:
+        \begin{itemize}
+            \item Unusual roof movement of floating storage tanks
+            \item Spills or leaks
+            \item Unauthorized personnel or vehicles
+        \end{itemize}
+    \end{itemize}
+%third point
+    \item \textbf{Anomaly Detection:}
+    \begin{itemize}
+        \item If an anomaly is detected, the UAV alerts the operator and the UGV.
+    \end{itemize}
+%fourth point
+    \item \textbf{Anomaly Detection:}
+    \begin{itemize}
+        \item UAV adjusts its flight path to focus on the anomaly area, capturing detailed images and videos.
+        \item UGV is dispatched to the ground-level location indicated by the UAV, using the real-time data to navigate.
+    \end{itemize}
+%fifth point
+    \item \textbf{Operator Assessment and Response:}
+    \begin{itemize}
+        \item Operator reviews the data from the UAV and UGV to assess the severity of the situation.
+        \item Based on the assessment, the operator may:
+        \begin{itemize}
+            \item Dispatch emergency response teams
+            \item Activate safety protocols
+            \item Implement corrective actions
+        \end{itemize}
+    \end{itemize}
+%sixth point
+    \item \textbf{Continuous Monitoring:}
+    \begin{itemize}
+        \item The UAV and UGV continue to monitor the situation, providing real-time updates to the operator.
+        \item The system adapts to changing conditions, adjusting flight paths and ground-level inspections as needed.
+    \end{itemize}
+\end{itemize}
