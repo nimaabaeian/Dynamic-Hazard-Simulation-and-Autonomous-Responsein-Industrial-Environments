@@ -31,12 +31,12 @@ class LidarTest:
         
            
         self.table_data = [
-            ["Tank ID", "Inclination", "Risk Level"],  # Headers (Fixed)
-            ["Tank 1", "0", "0"],
-            ["Tank 2", "0", "0"],
-            ["Tank 3", "0", "0"],
-            ["Tank 4", "0", "0"],
-            ["Tank 5", "0", "0"]
+            ["Tank ID", "Tilt Angle", "Risk Level"],  # Headers (Fixed)
+            ["Tank 1", " ", " "],
+            ["Tank 2", " ", " "],
+            ["Tank 3", " ", " "],
+            ["Tank 4", " ", " "],
+            ["Tank 5", " ", " "]
         ]
 
 
@@ -53,25 +53,16 @@ class LidarTest:
         self.WHITE = (255, 255, 255)
         self.GRAY = (128,128,128)
         self.BLACK = (0, 0, 0)
+        self.DARK_BLUE = (0,25,51)
         self.COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]  # Red, Green, Blue
-        
 
-  
         
-
-   
+        
     def execute(self,q):
         print("arming the drone...")
         self.client.armDisarm(True)  #Rotate the propellor
-        start_pose = self.client.simGetVehiclePose().position
-        airsim_start_x = start_pose.x_val
-        airsim_start_y = start_pose.y_val
-
         airsim.wait_key('Press any key to takeoff')
         self.client.takeoffAsync().join()
-        start_pose = self.client.simGetVehiclePose().position
-        airsim_start_x = start_pose.x_val
-        airsim_start_y = start_pose.y_val
         intial_pose = (998.300, 2467, -44.6)
         tank_positions = [
             (952.05094124, 2425.23966258),
@@ -80,12 +71,13 @@ class LidarTest:
             (925.50094124, 2248.85023421),
             (918.35094124, 2193.88966258)
         ]
-        airsim_positions = []
+        
        
         for i, (x, y) in enumerate(tank_positions, start=1):
             x = x - intial_pose[0]
             y = y -  intial_pose[1]
-            self.client.moveToPositionAsync(x, y, -30, 8).join()
+            self.client.moveToPositionAsync(x, y, -35, 8).join()
+            time.sleep(2)
             print(f"This is tank {i}")
             theta_1_3, theta_2_4 = self.get_theta()
             updated_row = self.update_table(i, max(theta_1_3, theta_2_4))
@@ -164,14 +156,14 @@ class LidarTest:
         # Create a smaller, more aesthetic table
         cell_width = 105  # Reduced cell width
         cell_height = 20  # Reduced cell height
-        start_x = 100           
-        start_y = 320
+        start_x = 85           
+        start_y = 305
 
         for row in range(2):
             for col in range(4):
                 rect = pygame.Rect(start_x + col * cell_width, start_y + row * cell_height, cell_width, cell_height)
                 #pygame.draw.rect(self.screen, self.BLACK, rect, 2) #To create lines (borders) between the rectangles:
-                text_surface = self.font.render(self.flight_data[row][col], True, self.WHITE) #This line creates a text image that can be displayed on the screen.
+                text_surface = self.font.render(self.flight_data[row][col], True, self.DARK_BLUE) #This line creates a text image that can be displayed on the screen.
                 if col == 0:
                     text_rect = text_surface.get_rect(midleft=rect.midleft)
                 else:
@@ -200,12 +192,12 @@ class LidarTest:
 
             # Draw the colored sections as filled arcs
             # Green section (0-5 degrees)
-        draw_filled_arc((0, 200, 0), math.pi - math.pi/3, math.pi)
+        draw_filled_arc((100, 180, 100), math.pi - math.pi/3, math.pi)
 
             # Yellow section (5-10 degrees)
-        draw_filled_arc((255, 255, 0), math.pi - 2*math.pi/3, math.pi - math.pi/3)
+        draw_filled_arc((255, 200, 120), math.pi - 2*math.pi/3, math.pi - math.pi/3)
             # Red section (10-15 degrees)
-        draw_filled_arc((255, 0, 0), 0, math.pi - 2*math.pi/3)
+        draw_filled_arc((200, 80, 80), 0, math.pi - 2*math.pi/3)
 
         # Draw the gauge markings
         self.draw_gauge_markings(gauge_center_x, gauge_center_y, radius)
@@ -239,24 +231,24 @@ class LidarTest:
     
         # Draw legend
         legend_y = gauge_center_y + 10
-        font = pygame.font.Font(None, 18)
+        font = pygame.font.Font(None, 20)
     
         # Draw the legend
-        pygame.draw.rect(self.screen, (0, 200, 0), (gauge_center_x - 70, legend_y, 15, 15))
-        text = font.render("Safe", True, self.BLACK)
+        pygame.draw.rect(self.screen, (100, 180, 100), (gauge_center_x - 70, legend_y, 12, 12))
+        text = font.render("Safe", True,self.DARK_BLUE)
         self.screen.blit(text, (gauge_center_x - 50, legend_y))
     
-        pygame.draw.rect(self.screen, (255, 255, 0), (gauge_center_x - 70, legend_y + 20, 15, 15))
-        text = font.render("First Alarm", True, self.BLACK)
+        pygame.draw.rect(self.screen, (255, 200, 120), (gauge_center_x - 70, legend_y + 20, 12, 12))
+        text = font.render("First Alarm", True,self.DARK_BLUE)
         self.screen.blit(text, (gauge_center_x - 50, legend_y + 20))
     
-        pygame.draw.rect(self.screen, (255, 0, 0), (gauge_center_x - 70, legend_y + 40, 15, 15))
-        text = font.render("Danger", True, self.BLACK)
+        pygame.draw.rect(self.screen, (200, 80, 80), (gauge_center_x - 70, legend_y + 40, 12, 12))
+        text = font.render("Danger", True,self.DARK_BLUE)
         self.screen.blit(text, (gauge_center_x - 50, legend_y + 40))
     
         # Draw title
-        title_font = pygame.font.Font(None, 32)
-        title = title_font.render("Inclination", True, self.BLACK)
+        title_font = pygame.font.Font(None, 30)
+        title = title_font.render("Inclination", True, self.DARK_BLUE)
         self.screen.blit(title, (gauge_center_x - 50, gauge_center_y - radius - 40))
 
     def draw_gauge_markings(self, center_x, center_y, radius):
@@ -272,11 +264,11 @@ class LidarTest:
             inner_y = center_y + (radius - 10) * math.sin(angle)
         
             # Draw tick mark
-            pygame.draw.line(self.screen, self.BLACK, (inner_x, inner_y), (outer_x, outer_y), 2)
+            pygame.draw.line(self.screen, self.DARK_BLUE, (inner_x, inner_y), (outer_x, outer_y), 2)
         
             # Draw label
             label = str(i * 5)
-            label_surface = font.render(label, True, self.BLACK)
+            label_surface = font.render(label, True, self.DARK_BLUE)
             label_x = center_x + (radius + 15) * math.cos(angle) - label_surface.get_width() / 2
             label_y = center_y + (radius + 15) * math.sin(angle) - label_surface.get_height() / 2
             self.screen.blit(label_surface, (label_x, label_y))
@@ -298,7 +290,7 @@ class LidarTest:
         sensor_data_3 = self.client.getDistanceSensorData("Distance_3")
         (x_3, y_3) = (sensor_data_3.relative_pose.position.x_val, sensor_data_3.relative_pose.position.y_val)
         diff_1 = abs(sensor_data_1.distance - sensor_data_3.distance) #Height
-        hyp_1_3 = math.sqrt((x_1 - x_3)**2 + (y_1 - y_3)**2) #Hyptenuse
+        hyp_1_3 = math.sqrt((x_1 - x_3)**2 + (y_1 - y_3)**2) #Hypotunuse
         theta_1_3 = math.asin(diff_1/hyp_1_3) 
 
         sensor_data_2 = self.client.getDistanceSensorData("Distance_2")
@@ -320,7 +312,7 @@ class LidarTest:
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Tank Inclination Monitor")
        
-        self.font = pygame.font.Font(None, 24)
+        self.font = pygame.font.SysFont(None, 24)
         running = True
 
         while running:
@@ -388,7 +380,7 @@ class LidarTest:
                         x, y, w, h = cv2.boundingRect(contour)
                         cv2.rectangle(thermal_image_copy, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 cv2.namedWindow("Oil Leak Detection", cv2.WINDOW_NORMAL)
-                cv2.resizeWindow("Oil Leak Detection", 640, 480)
+                cv2.resizeWindow("Oil Leak Detection",570, 365)
                 cv2.imshow("Oil Leak Detection", thermal_image_copy)
 
                 
