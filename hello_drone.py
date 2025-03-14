@@ -50,7 +50,11 @@ class LidarTest:
         self.START_Y = 30  # Starting position (y)
         #define the starting position (top-left corner) for rendering the table on the Pygame window.
         self.WHITE = (255, 255, 255)
+        self.GRAY = (128,128,128)
         self.BLACK = (0, 0, 0)
+        self.COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]  # Red, Green, Blue
+        
+  
         
 
    
@@ -82,15 +86,145 @@ class LidarTest:
         pygame.mixer.music.play()
 
     def draw_table(self):
-        
-        for row in range(6):
+        # Create a smaller, more aesthetic table
+        cell_width = 120  # Reduced cell width
+        cell_height = 40  # Reduced cell height
+        start_x = 20           
+        start_y = 20
+
+        # Styling
+        header_bg = (81, 67, 168)  # Dark gray for header
+        row_gap = 5  # Extra space between rows
+        border_radius = 8  # Small curve for edges
+
+        # Function to draw a row with rounded left/right edges only
+        def draw_row(y, bg_color, text_data, is_header=False):
+            # Full row rect with border_radius for left & right edges
+            full_rect = pygame.Rect(start_x, y, cell_width * 3, cell_height)
+            pygame.draw.rect(self.screen, bg_color, full_rect, border_radius=border_radius)
+
+            # Overlap a straight rectangle in the middle to remove top/bottom curves
+            middle_rect = pygame.Rect(start_x + border_radius, y, (cell_width * 3) - (2 * border_radius), cell_height)
+            pygame.draw.rect(self.screen, bg_color, middle_rect)  # No border_radius here
+
+            # Draw text
             for col in range(3):
-                rect = pygame.Rect(self.START_X + col * self.CELL_WIDTH, self.START_Y + row * self.CELL_HEIGHT, self.CELL_WIDTH, self.CELL_HEIGHT)
-                pygame.draw.rect(self.screen, self.BLACK, rect, 2) #To create lines (borders) between the rectangles:
-                text_surface = self.font.render(self.table_data[row][col], True, self.BLACK) #This line creates a text image that can be displayed on the screen.
-                text_rect = text_surface.get_rect(center=rect.center) #positions the text in the center of the rectangle (table cell).
-                self.screen.blit(text_surface, text_rect) #displays the text on the screen 
-                
+                text_surface = self.font.render(text_data[col], True, (0,25,51))
+                text_rect = text_surface.get_rect(center=(start_x + col * cell_width + cell_width // 2, y + cell_height // 2))
+                self.screen.blit(text_surface, text_rect)
+
+        # Draw Header (with curved edges)
+        draw_row(start_y, header_bg, self.table_data[0], is_header=True)
+
+        # Draw Data Rows (with curved edges)
+        for row in range(1, 6):
+            bg_color = (204,229, 255) if row % 2 == 0 else (204, 204, 255)
+            row_y = start_y + row * (cell_height + row_gap)  # Adjust row position with gap
+            draw_row(row_y, bg_color, self.table_data[row])
+
+    def draw_gauge(self):
+        # Position the gauge on the right side
+        gauge_center_x = self.WIDTH - 150
+        gauge_center_y = self.HEIGHT // 2
+        radius = 80
+        
+        # Function to draw a filled arc section
+        def draw_filled_arc(color, start_angle, end_angle):
+            points = [(gauge_center_x, gauge_center_y)]  # Start with center point
+
+            # Add points along the arc
+            for i in range(21):  # More points = smoother arc
+                angle = -start_angle + (-end_angle + start_angle) * (i / 20)
+                x = gauge_center_x + radius * math.cos(angle)
+                y = gauge_center_y + radius * math.sin(angle)
+                points.append((x, y))
+
+             # Draw the filled polygon
+            pygame.draw.polygon(self.screen, color, points)
+
+            # Draw the colored sections as filled arcs
+            # Green section (0-5 degrees)
+        draw_filled_arc((0, 200, 0), math.pi - math.pi/3, math.pi)
+
+            # Yellow section (5-10 degrees)
+        draw_filled_arc((255, 255, 0), math.pi - 2*math.pi/3, math.pi - math.pi/3)
+            # Red section (10-15 degrees)
+        draw_filled_arc((255, 0, 0), 0, math.pi - 2*math.pi/3)
+
+        # Draw the gauge markings
+        self.draw_gauge_markings(gauge_center_x, gauge_center_y, radius)
+    
+        # Draw the gauge needle for the current value (for demonstration)
+        # For actual use, you'd use the current tank's theta value
+        current_theta = 0  # Default value
+        # Get the current tank's theta value if available
+        for row in self.table_data[1:]: #Exclude Header and Start from the Tank ID 1
+            if row[2] != "0": #This checks the last column of the table
+                try:
+                    current_theta = float(row[1])
+                    break
+                except ValueError:
+                    pass
+    
+        # Calculate angle for the needle
+        if current_theta > 15:
+            current_theta = 15  # Cap at max value
+        needle_angle = 0 + (current_theta / 15) * math.pi
+        needle_length = radius - 10
+    
+        # Draw needle
+        end_x = gauge_center_x - needle_length * math.cos(needle_angle)
+        end_y = gauge_center_y - needle_length * math.sin(needle_angle)
+        pygame.draw.line(self.screen, (255, 255, 255), (gauge_center_x, gauge_center_y), 
+                        (end_x, end_y), 3)
+    
+        # Draw center circle
+        pygame.draw.circle(self.screen, (100, 100, 100), (gauge_center_x, gauge_center_y), 5)
+    
+        # Draw legend
+        legend_y = gauge_center_y + 10
+        font = pygame.font.Font(None, 18)
+    
+        # Draw the legend
+        pygame.draw.rect(self.screen, (0, 200, 0), (gauge_center_x - 70, legend_y, 15, 15))
+        text = font.render("Safe", True, self.BLACK)
+        self.screen.blit(text, (gauge_center_x - 50, legend_y))
+    
+        pygame.draw.rect(self.screen, (255, 255, 0), (gauge_center_x - 70, legend_y + 20, 15, 15))
+        text = font.render("First Alarm", True, self.BLACK)
+        self.screen.blit(text, (gauge_center_x - 50, legend_y + 20))
+    
+        pygame.draw.rect(self.screen, (255, 0, 0), (gauge_center_x - 70, legend_y + 40, 15, 15))
+        text = font.render("Danger", True, self.BLACK)
+        self.screen.blit(text, (gauge_center_x - 50, legend_y + 40))
+    
+        # Draw title
+        title_font = pygame.font.Font(None, 32)
+        title = title_font.render("Inclination", True, self.BLACK)
+        self.screen.blit(title, (gauge_center_x - 50, gauge_center_y - radius - 40))
+
+    def draw_gauge_markings(self, center_x, center_y, radius):
+        # Draw tick marks and labels
+        font = pygame.font.Font(None, 24)
+    
+        # Major ticks at 0, 5, 10, 15
+        for i in range(4):
+            angle = math.pi + (i * math.pi / 3)
+            outer_x = center_x + radius * math.cos(angle)
+            outer_y = center_y + radius * math.sin(angle)
+            inner_x = center_x + (radius - 10) * math.cos(angle)
+            inner_y = center_y + (radius - 10) * math.sin(angle)
+        
+            # Draw tick mark
+            pygame.draw.line(self.screen, self.BLACK, (inner_x, inner_y), (outer_x, outer_y), 2)
+        
+            # Draw label
+            label = str(i * 5)
+            label_surface = font.render(label, True, self.BLACK)
+            label_x = center_x + (radius + 15) * math.cos(angle) - label_surface.get_width() / 2
+            label_y = center_y + (radius + 15) * math.sin(angle) - label_surface.get_height() / 2
+            self.screen.blit(label_surface, (label_x, label_y))
+
     def update_table(self, tank_id, theta):
         risk_level = "Low" if theta < 0.1 else "Medium" if theta < 0.2 else "High"
         self.table_data[tank_id][1] = f"{theta:.2f}"
@@ -127,18 +261,21 @@ class LidarTest:
     def run(self,q):
         """Runs the Pygame window with dynamic table updates."""
         pygame.init()
-        self.WIDTH, self.HEIGHT = 600, 400  # Window size
+        self.WIDTH, self.HEIGHT = 650, 400  # Window size
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-        pygame.display.set_caption("Data")
+        pygame.display.set_caption("Tank Inclination Monitor")
        
-        self.font = pygame.font.Font(None, 40)
+        self.font = pygame.font.Font(None, 24)
         running = True
 
         while running:
-            self.screen.fill(self.WHITE)  # Clear screen
+            self.screen.fill(self.GRAY)  # Clear screen
+            
             self.update_table_from_queue(q)
-            self.draw_table()  # Draw the updated table
+            self.draw_table()  # Draw the compact table
+            self.draw_gauge()  # Draw the semi-circular gauge
             pygame.display.flip()  # Refresh display
+
  
             # Handle quit event
             for event in pygame.event.get():
