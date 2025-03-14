@@ -1,7 +1,4 @@
-# Python client example to get Lidar data from a drone
- 
-#
- 
+﻿
 import setup_path
 import airsim
 
@@ -12,11 +9,9 @@ import argparse
 import pprint
 import numpy
 import numpy as np
-
 import sys
 import cv2
 import multiprocessing
-
 import pygame
 
  
@@ -44,6 +39,12 @@ class LidarTest:
             ["Tank 5", "0", "0"]
         ]
 
+
+        self.flight_data = [
+            ["Position", "X:", "Y:", "Z:"],  # Headers (Fixed)
+            ["Orientation", "Roll:", "Pitch:", "Yaw:"]
+        ]
+
         self.CELL_WIDTH = 180
         self.CELL_HEIGHT = 60
         self.START_X = 10  # Starting position (x)
@@ -54,6 +55,7 @@ class LidarTest:
         self.BLACK = (0, 0, 0)
         self.COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]  # Red, Green, Blue
         
+
   
         
 
@@ -61,23 +63,60 @@ class LidarTest:
     def execute(self,q):
         print("arming the drone...")
         self.client.armDisarm(True)  #Rotate the propellor
+        start_pose = self.client.simGetVehiclePose().position
+        airsim_start_x = start_pose.x_val
+        airsim_start_y = start_pose.y_val
+
         airsim.wait_key('Press any key to takeoff')
         self.client.takeoffAsync().join()
+        start_pose = self.client.simGetVehiclePose().position
+        airsim_start_x = start_pose.x_val
+        airsim_start_y = start_pose.y_val
+        intial_pose = (998.300, 2467, -44.6)
         tank_positions = [
-            (47.641200, -122.140910),
-            (47.641150, -122.141690),
-            (47.641150, -122.142460),
-            (47.641150, -122.143200),
-            (47.641150, -122.143900)
+            (952.05094124, 2425.23966258),
+            (942.95094124, 2367.83966258),
+            (934.11540034, 2307.80857353),
+            (925.50094124, 2248.85023421),
+            (918.35094124, 2193.88966258)
         ]
-        for i, (lat, lon) in enumerate(tank_positions, start=1):
-            self.client.moveToGPSAsync(lat, lon, 200, 8).join()
+        airsim_positions = []
+       
+        for i, (x, y) in enumerate(tank_positions, start=1):
+            x = x - intial_pose[0]
+            y = y -  intial_pose[1]
+            self.client.moveToPositionAsync(x, y, -30, 8).join()
             print(f"This is tank {i}")
             theta_1_3, theta_2_4 = self.get_theta()
             updated_row = self.update_table(i, max(theta_1_3, theta_2_4))
-            q.put(updated_row)
+            
+
+
+            q.put({
+                "updated_row": updated_row,  # Store updated table row
+            })
   
-        print(self.client.getGpsData())
+    def fight_pose(self,q):
+        
+        self.pose = self.client.getMultirotorState().kinematics_estimated
+        updated_drone_position =self.pose.position
+        updated_drone_orientation = self.pose.orientation
+        roll,pitch,yaw = airsim.to_eularian_angles(updated_drone_orientation)
+
+        
+        q.put({
+                "orientation":
+                {
+                    "roll": roll,
+                    "pitch": pitch,
+                    "yaw": yaw
+                },
+                "position": {
+                    "x": updated_drone_position.x_val,
+                    "y": updated_drone_position.y_val,
+                    "z": updated_drone_position.z_val
+                }
+            })
 
     def play_alarm(self):
         pygame.mixer.init()
@@ -87,7 +126,7 @@ class LidarTest:
 
     def draw_table(self):
         # Create a smaller, more aesthetic table
-        cell_width = 120  # Reduced cell width
+        cell_width = 100  # Reduced cell width
         cell_height = 40  # Reduced cell height
         start_x = 20           
         start_y = 20
@@ -121,10 +160,27 @@ class LidarTest:
             bg_color = (204,229, 255) if row % 2 == 0 else (204, 204, 255)
             row_y = start_y + row * (cell_height + row_gap)  # Adjust row position with gap
             draw_row(row_y, bg_color, self.table_data[row])
+    def draw_flight_data_table(self):
+        # Create a smaller, more aesthetic table
+        cell_width = 105  # Reduced cell width
+        cell_height = 20  # Reduced cell height
+        start_x = 100           
+        start_y = 320
 
-    def draw_gauge(self):
+        for row in range(2):
+            for col in range(4):
+                rect = pygame.Rect(start_x + col * cell_width, start_y + row * cell_height, cell_width, cell_height)
+                #pygame.draw.rect(self.screen, self.BLACK, rect, 2) #To create lines (borders) between the rectangles:
+                text_surface = self.font.render(self.flight_data[row][col], True, self.WHITE) #This line creates a text image that can be displayed on the screen.
+                if col == 0:
+                    text_rect = text_surface.get_rect(midleft=rect.midleft)
+                else:
+                    text_rect = text_surface.get_rect(center=rect.center) #positions the text in the center of the rectangle (table cell).
+                self.screen.blit(text_surface, text_rect) #displays the text on the screen 
+
+    def draw_gauge(self): 
         # Position the gauge on the right side
-        gauge_center_x = self.WIDTH - 150
+        gauge_center_x = 635 - 190 #self.WIDTH - 150
         gauge_center_y = self.HEIGHT // 2
         radius = 80
         
@@ -204,7 +260,7 @@ class LidarTest:
         self.screen.blit(title, (gauge_center_x - 50, gauge_center_y - radius - 40))
 
     def draw_gauge_markings(self, center_x, center_y, radius):
-        # Draw tick marks and labels
+            # Draw tick marks and labels
         font = pygame.font.Font(None, 24)
     
         # Major ticks at 0, 5, 10, 15
@@ -229,7 +285,6 @@ class LidarTest:
         risk_level = "Low" if theta < 0.1 else "Medium" if theta < 0.2 else "High"
         self.table_data[tank_id][1] = f"{theta:.2f}"
         self.table_data[tank_id][2] = risk_level
-
         #print(f"Updated Tank {tank_id}: Inclination = {theta:.2f}, Risk Level = {risk_level}")
         #print(self.table_data)
         return [tank_id, f"{theta:.2f}", risk_level]
@@ -261,7 +316,7 @@ class LidarTest:
     def run(self,q):
         """Runs the Pygame window with dynamic table updates."""
         pygame.init()
-        self.WIDTH, self.HEIGHT = 650, 400  # Window size
+        self.WIDTH, self.HEIGHT = 570, 365  # Window size
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Tank Inclination Monitor")
        
@@ -270,10 +325,12 @@ class LidarTest:
 
         while running:
             self.screen.fill(self.GRAY)  # Clear screen
+            self.fight_pose(q)
             
             self.update_table_from_queue(q)
             self.draw_table()  # Draw the compact table
             self.draw_gauge()  # Draw the semi-circular gauge
+            self.draw_flight_data_table()
             pygame.display.flip()  # Refresh display
 
  
@@ -284,12 +341,27 @@ class LidarTest:
  
         pygame.quit()
         sys.exit()
-
     def update_table_from_queue(self, q):
         while not q.empty():
-            tank_id, inclination, risk_level = q.get()
-            self.table_data[tank_id][1] = inclination
-            self.table_data[tank_id][2] = risk_level
+            data = q.get()
+        
+            # Check if this data has updated_row info
+            if "updated_row" in data:
+                updated_row = data["updated_row"]
+                tank_id, inclination, risk_level = updated_row
+                self.table_data[tank_id][1] = inclination
+                self.table_data[tank_id][2] = risk_level
+            
+            # Check if this data has position and orientation info
+            if "position" in data and "orientation" in data:
+                self.flight_data[0][1] = f"X: {data['position']['x']:.2f}"
+                self.flight_data[0][2] = f"Y: {data['position']['y']:.2f}"
+                self.flight_data[0][3] = f"Z: {data['position']['z']:.2f}"
+                self.flight_data[1][1] = f"\u03C6: {data['orientation']['roll']:.2f}"
+                self.flight_data[1][2] = f"θ: {data['orientation']['pitch']:.2f}"
+                self.flight_data[1][3] = f"ψ: {data['orientation']['yaw']:.2f}"
+
+
  
     def thermal_camera(self):
         while True:
