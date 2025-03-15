@@ -28,7 +28,7 @@
                     "Enabled" : true,
                     "MinDistance": 0.2,
                     "MaxDistance": 40,
-                    "X": 4, "Y": 4, "Z": -1,
+                    "X": 10, "Y": 10, "Z": -1,
                     "Yaw": 0, "Pitch": -90, "Roll": 0,
                     "DrawDebugPoints": true
                 },
@@ -37,7 +37,7 @@
                     "Enabled" : true,
                     "MinDistance": 0.2,
                     "MaxDistance": 40,
-                    "X": 4, "Y": -4, "Z": -1,
+                    "X": 10, "Y": -10, "Z": -1,
                     "Yaw": 0, "Pitch": -90, "Roll": 0,
                     "DrawDebugPoints": true
                 },
@@ -46,7 +46,7 @@
                     "Enabled" : true,
                     "MinDistance": 0.2,
                     "MaxDistance": 40,
-                    "X": -4, "Y": 4, "Z": -1,
+                    "X": -10, "Y": -10, "Z": -1,
                     "Yaw": 0, "Pitch": -90, "Roll": 0,
                     "DrawDebugPoints": true
                 },
@@ -55,7 +55,7 @@
                     "Enabled" : true,
                     "MinDistance": 0.2,
                     "MaxDistance": 40,
-                    "X": -4, "Y": -4, "Z": -1,
+                    "X": -10, "Y": 10, "Z": -1,
                     "Yaw": 0, "Pitch": -90, "Roll": 0,
                     "DrawDebugPoints": true
                 }
@@ -87,8 +87,14 @@
         }
     },
     "SubWindows": [
-        {"WindowID": 1, "ImageType": 0, "CameraName": "thermal_camera", "Visible": true}
-      ]
+        {
+            "WindowID": 1,
+            "ImageType" : 0,
+            "CameraName": "thermal_camera",
+            "Visible": true
+        }
+    ]
+
 }
 
 
