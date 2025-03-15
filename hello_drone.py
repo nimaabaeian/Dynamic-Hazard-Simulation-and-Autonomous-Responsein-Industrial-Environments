@@ -379,7 +379,7 @@ class LidarTest:
                 thermal_image_copy = thermal_image.copy()
                 hsv_image = cv2.cvtColor(thermal_image, cv2.COLOR_BGR2HSV)
                 lower_oil = np.array([0, 0, 0])
-                upper_oil = np.array([180, 255, 100])
+                upper_oil = np.array([180, 200, 30])
                 oil_mask = cv2.inRange(hsv_image, lower_oil, upper_oil)
                 kernel = np.ones((5, 5), np.uint8)
                 oil_mask = cv2.morphologyEx(oil_mask, cv2.MORPH_CLOSE, kernel)
