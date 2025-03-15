@@ -1,8 +1,6 @@
 ﻿
 import setup_path
 import airsim
-
- 
 import math
 import time 
 import argparse
@@ -97,7 +95,7 @@ class LidarTest:
         updated_drone_orientation = self.pose.orientation
         roll,pitch,yaw = airsim.to_eularian_angles(updated_drone_orientation)
 
-        
+
         q.put({
                 "orientation":
                 {
@@ -106,9 +104,9 @@ class LidarTest:
                     "yaw": yaw
                 },
                 "position": {
-                    "x": updated_drone_position.x_val,
-                    "y": updated_drone_position.y_val,
-                    "z": updated_drone_position.z_val
+                    "x": -updated_drone_position.x_val,
+                    "y": -updated_drone_position.y_val,
+                    "z": -updated_drone_position.z_val
                 }
             })
 
@@ -258,7 +256,7 @@ class LidarTest:
         # Draw title
         title_font = pygame.font.Font(None, 30)
         title = title_font.render("Inclination", True, self.DARK_BLUE)
-        self.screen.blit(title, (gauge_center_x - 50, gauge_center_y - radius - 40))
+        self.screen.blit(title, (gauge_center_x - 50, gauge_center_y - radius - 50))
 
     def draw_gauge_markings(self, center_x, center_y, radius):
             # Draw tick marks and labels
