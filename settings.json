@@ -27,7 +27,7 @@
                     "SensorType": 5,
                     "Enabled" : true,
                     "MinDistance": 0.2,
-                    "MaxDistance": 40,
+                    "MaxDistance": 80,
                     "X": 10, "Y": 10, "Z": -1,
                     "Yaw": 0, "Pitch": -90, "Roll": 0,
                     "DrawDebugPoints": true
@@ -36,7 +36,7 @@
                     "SensorType": 5,
                     "Enabled" : true,
                     "MinDistance": 0.2,
-                    "MaxDistance": 40,
+                    "MaxDistance": 80,
                     "X": 10, "Y": -10, "Z": -1,
                     "Yaw": 0, "Pitch": -90, "Roll": 0,
                     "DrawDebugPoints": true
@@ -45,7 +45,7 @@
                     "SensorType": 5,
                     "Enabled" : true,
                     "MinDistance": 0.2,
-                    "MaxDistance": 40,
+                    "MaxDistance": 80,
                     "X": -10, "Y": -10, "Z": -1,
                     "Yaw": 0, "Pitch": -90, "Roll": 0,
                     "DrawDebugPoints": true
@@ -54,7 +54,7 @@
                     "SensorType": 5,
                     "Enabled" : true,
                     "MinDistance": 0.2,
-                    "MaxDistance": 40,
+                    "MaxDistance": 80,
                     "X": -10, "Y": 10, "Z": -1,
                     "Yaw": 0, "Pitch": -90, "Roll": 0,
                     "DrawDebugPoints": true
