@@ -57,6 +57,8 @@ class LidarTest:
         self.COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]  # Red, Green, Blue
 
         
+
+        
         
     def execute(self,q):
         print("arming the drone...")
@@ -77,7 +79,7 @@ class LidarTest:
             x = x - intial_pose[0]
             y = y -  intial_pose[1]
             self.client.moveToPositionAsync(x, y, -35, 8).join()
-            time.sleep(2)
+            time.sleep(10)
             print(f"This is tank {i}")
             theta_1_3, theta_2_4 = self.get_theta()
             updated_row = self.update_table(i, max(theta_1_3, theta_2_4))
@@ -170,7 +172,7 @@ class LidarTest:
                     text_rect = text_surface.get_rect(center=rect.center) #positions the text in the center of the rectangle (table cell).
                 self.screen.blit(text_surface, text_rect) #displays the text on the screen 
 
-    def draw_gauge(self): 
+    def draw_gauge(self,q): 
         # Position the gauge on the right side
         gauge_center_x = 635 - 190 #self.WIDTH - 150
         gauge_center_y = self.HEIGHT // 2
@@ -192,12 +194,12 @@ class LidarTest:
 
             # Draw the colored sections as filled arcs
             # Green section (0-5 degrees)
-        draw_filled_arc((100, 180, 100), math.pi - math.pi/3, math.pi)
+        draw_filled_arc((100, 180, 100), math.pi - math.pi/10, math.pi)
 
             # Yellow section (5-10 degrees)
-        draw_filled_arc((255, 200, 120), math.pi - 2*math.pi/3, math.pi - math.pi/3)
+        draw_filled_arc((255, 200, 120), math.pi - math.pi/10 -math.pi/5,  math.pi - math.pi/10)
             # Red section (10-15 degrees)
-        draw_filled_arc((200, 80, 80), 0, math.pi - 2*math.pi/3)
+        draw_filled_arc((200, 80, 80), 0,math.pi - math.pi/10 -math.pi/5)
 
         # Draw the gauge markings
         self.draw_gauge_markings(gauge_center_x, gauge_center_y, radius)
@@ -206,23 +208,30 @@ class LidarTest:
         # For actual use, you'd use the current tank's theta value
         current_theta = 0  # Default value
         # Get the current tank's theta value if available
-        for row in self.table_data[1:]: #Exclude Header and Start from the Tank ID 1
-            if row[2] != "0": #This checks the last column of the table
+
+        for row in self.table_data[1:]: # Exclude Header and Start from the Tank ID 1
+            if row[1] != " ":  # This checks the last column of the table
                 try:
-                    current_theta = float(row[1])
-                    break
+                    current_theta = float(row[1])  # Converts the second column to a float (theta value)
+                      # Exit the loop once the value is found
                 except ValueError:
-                    pass
-    
+                    pass  # If conversion fails, skip to the next row
+  
         # Calculate angle for the needle
-        if current_theta > 15:
-            current_theta = 15  # Cap at max value
-        needle_angle = 0 + (current_theta / 15) * math.pi
+
+        
+        if current_theta > 10:
+            current_theta = 10  # Cap at max value
+        self.needle_angle = 0 + (current_theta / 10)*math.pi
         needle_length = radius - 10
+        q.put({
+            "needle_angle":self.needle_angle
+            })
+        #print(self.needle_angle)
     
         # Draw needle
-        end_x = gauge_center_x - needle_length * math.cos(needle_angle)
-        end_y = gauge_center_y - needle_length * math.sin(needle_angle)
+        end_x = gauge_center_x - needle_length * math.cos(self.needle_angle)
+        end_y = gauge_center_y - needle_length * math.sin(self.needle_angle)
         pygame.draw.line(self.screen, (255, 255, 255), (gauge_center_x, gauge_center_y), 
                         (end_x, end_y), 3)
     
@@ -256,8 +265,8 @@ class LidarTest:
         font = pygame.font.Font(None, 24)
     
         # Major ticks at 0, 5, 10, 15
-        for i in range(4):
-            angle = math.pi + (i * math.pi / 3)
+        for i in range(11):
+            angle = math.pi + (i * math.pi / 10)
             outer_x = center_x + radius * math.cos(angle)
             outer_y = center_y + radius * math.sin(angle)
             inner_x = center_x + (radius - 10) * math.cos(angle)
@@ -267,14 +276,14 @@ class LidarTest:
             pygame.draw.line(self.screen, self.DARK_BLUE, (inner_x, inner_y), (outer_x, outer_y), 2)
         
             # Draw label
-            label = str(i * 5)
+            label = str(i * 1)
             label_surface = font.render(label, True, self.DARK_BLUE)
             label_x = center_x + (radius + 15) * math.cos(angle) - label_surface.get_width() / 2
             label_y = center_y + (radius + 15) * math.sin(angle) - label_surface.get_height() / 2
             self.screen.blit(label_surface, (label_x, label_y))
 
     def update_table(self, tank_id, theta):
-        risk_level = "Low" if theta < 0.1 else "Medium" if theta < 0.2 else "High"
+        risk_level = "Low" if theta < 1 else "Medium" if theta < 3 else "High"
         self.table_data[tank_id][1] = f"{theta:.2f}"
         self.table_data[tank_id][2] = risk_level
         #print(f"Updated Tank {tank_id}: Inclination = {theta:.2f}, Risk Level = {risk_level}")
@@ -291,7 +300,8 @@ class LidarTest:
         (x_3, y_3) = (sensor_data_3.relative_pose.position.x_val, sensor_data_3.relative_pose.position.y_val)
         diff_1 = abs(sensor_data_1.distance - sensor_data_3.distance) #Height
         hyp_1_3 = math.sqrt((x_1 - x_3)**2 + (y_1 - y_3)**2) #Hypotunuse
-        theta_1_3 = math.asin(diff_1/hyp_1_3) 
+        theta_2_4_radian = math.asin(diff_1/hyp_1_3) 
+        theta_1_3 = math.degrees(theta_2_4_radian)
 
         sensor_data_2 = self.client.getDistanceSensorData("Distance_2")
         (x_2, y_2) = (sensor_data_2.relative_pose.position.x_val, sensor_data_2.relative_pose.position.y_val)
@@ -299,7 +309,8 @@ class LidarTest:
         (x_4, y_4) = (sensor_data_4.relative_pose.position.x_val, sensor_data_4.relative_pose.position.y_val)
         diff_2 = abs(sensor_data_2.distance - sensor_data_4.distance) #Height
         hyp_2_4 = math.sqrt((x_2 - x_4)**2 + (y_2 - y_4)**2) #Hyptenuse
-        theta_2_4 = math.asin(diff_2/hyp_2_4)
+        theta_2_4_radian = math.asin(diff_2/hyp_2_4)
+        theta_2_4 = math.degrees(theta_2_4_radian) 
         print (theta_1_3, theta_2_4)
         return theta_1_3, theta_2_4
 
@@ -321,7 +332,7 @@ class LidarTest:
             
             self.update_table_from_queue(q)
             self.draw_table()  # Draw the compact table
-            self.draw_gauge()  # Draw the semi-circular gauge
+            self.draw_gauge(q)  # Draw the semi-circular gauge
             self.draw_flight_data_table()
             pygame.display.flip()  # Refresh display
 
@@ -352,7 +363,8 @@ class LidarTest:
                 self.flight_data[1][1] = f"\u03C6: {data['orientation']['roll']:.2f}"
                 self.flight_data[1][2] = f"θ: {data['orientation']['pitch']:.2f}"
                 self.flight_data[1][3] = f"ψ: {data['orientation']['yaw']:.2f}"
-
+            if "needle_angle" in data:
+                self.needle_angle = data["needle_angle"]
 
  
     def thermal_camera(self):
