@@ -77,12 +77,14 @@ class LidarTest:
             x = x - intial_pose[0]
             y = y -  intial_pose[1]
             self.client.moveToPositionAsync(x, y, -35, 8).join()
+            self.client.hoverAsync().join()
             time.sleep(10)
             print(f"This is tank {i}")
             theta_1_3, theta_2_4 = self.get_theta()
-            updated_row = self.update_table(i, max(theta_1_3, theta_2_4))
-            
-
+            if i == 5:
+                pass
+            else:
+                updated_row = self.update_table(i, max(theta_1_3, theta_2_4))
 
             q.put({
                 "updated_row": updated_row,  # Store updated table row
@@ -104,7 +106,7 @@ class LidarTest:
                     "yaw": yaw
                 },
                 "position": {
-                    "x": -updated_drone_position.x_val,
+                    "x": -updated_drone_position.x_val,  
                     "y": -updated_drone_position.y_val,
                     "z": -updated_drone_position.z_val
                 }
@@ -284,8 +286,6 @@ class LidarTest:
         risk_level = "Low" if theta < 1 else "Medium" if theta < 3 else "High"
         self.table_data[tank_id][1] = f"{theta:.2f}"
         self.table_data[tank_id][2] = risk_level
-        #print(f"Updated Tank {tank_id}: Inclination = {theta:.2f}, Risk Level = {risk_level}")
-        #print(self.table_data)
         return [tank_id, f"{theta:.2f}", risk_level]
     
 
@@ -311,8 +311,6 @@ class LidarTest:
         theta_2_4 = math.degrees(theta_2_4_radian) 
         print (theta_1_3, theta_2_4)
         return theta_1_3, theta_2_4
-
-
 
     def run(self,q):
         """Runs the Pygame window with dynamic table updates."""
@@ -343,15 +341,17 @@ class LidarTest:
         pygame.quit()
         sys.exit()
     def update_table_from_queue(self, q):
+        
         while not q.empty():
             data = q.get()
-        
+            
             # Check if this data has updated_row info
             if "updated_row" in data:
                 updated_row = data["updated_row"]
                 tank_id, inclination, risk_level = updated_row
                 self.table_data[tank_id][1] = inclination
                 self.table_data[tank_id][2] = risk_level
+                    
             
             # Check if this data has position and orientation info
             if "position" in data and "orientation" in data:
@@ -365,7 +365,7 @@ class LidarTest:
                 self.needle_angle = data["needle_angle"]
 
  
-    def thermal_camera(self):
+    def thermal_camera(self,q):
         while True:
             responses = self.client.simGetImages([airsim.ImageRequest("thermal_camera", airsim.ImageType.Scene, False, False)])
             if responses and responses[0].image_data_uint8:
@@ -385,24 +385,26 @@ class LidarTest:
                 oil_mask = cv2.morphologyEx(oil_mask, cv2.MORPH_CLOSE, kernel)
                 oil_mask = cv2.morphologyEx(oil_mask, cv2.MORPH_OPEN, kernel)
                 contours, _ = cv2.findContours(oil_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                
+                oil_detected = False
                 for contour in contours:
                     if cv2.contourArea(contour) > 500:
                         x, y, w, h = cv2.boundingRect(contour)
                         cv2.rectangle(thermal_image_copy, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                        oil_detected = True
+                if oil_detected:
+                        self.play_alarm()
+                        self.table_data[5][1] = " - "
+                        self.table_data[5][2] = "Danger"
+                        
+                        q.put({
+                            "updated_row": [5, " - ", "Danger"],  # Store updated table row
+                        })
+
                 cv2.namedWindow("Oil Leak Detection", cv2.WINDOW_NORMAL)
                 cv2.resizeWindow("Oil Leak Detection",570, 365)
                 cv2.imshow("Oil Leak Detection", thermal_image_copy)
-
                 
-
-
-                
-                self.client.simSetSegmentationObjectID("thermal_camera", 5, True)
-
-
-            else:
-                print("Error: Could not retrieve thermal image")
-        
  
     def stop(self):
  
@@ -416,9 +418,9 @@ class LidarTest:
  
         print("Done!\n")
  
-def thermal_camera_p1():
+def thermal_camera_p1(q):
     lidar_test = LidarTest()
-    lidar_test.thermal_camera()
+    lidar_test.thermal_camera(q)
 def execute_p2(q):
     lidar_test = LidarTest()
     lidar_test.execute(q)
@@ -432,7 +434,7 @@ def draw_table_p3(q):
 if __name__ == "__main__":
     q = multiprocessing.Queue()
 
-    p1 = multiprocessing.Process(target=thermal_camera_p1)
+    p1 = multiprocessing.Process(target=thermal_camera_p1, args=(q,))
     p2 = multiprocessing.Process(target=execute_p2, args=(q,))
     p3 = multiprocessing.Process(target=draw_table_p3, args=(q,))
     try:
@@ -444,5 +446,6 @@ if __name__ == "__main__":
         p3.join()
     finally:
         lidar_test = LidarTest()
-        print("Stopping the drone")
         lidar_test.stop()
+        print("Stopping the drone")
+        
