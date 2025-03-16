@@ -1,4 +1,5 @@
 ﻿
+from turtle import goto
 import setup_path
 import airsim
 import math
@@ -112,9 +113,14 @@ class LidarTest:
                 }
             })
 
-    def play_alarm(self):
+    def play_alarm(self,path):
+
         pygame.mixer.init()
-        file_path = r"D:\Robotics Engineering-UniGe\2 anno\First semester\Virtual Reality\Tutorial\Colosseum-main\PythonClient\multirotor\alarm.mp3"
+
+        if path == "hazard_path":
+            file_path = r"D:\Robotics Engineering-UniGe\2 anno\First semester\Virtual Reality\Tutorial\Colosseum-main\PythonClient\multirotor\danger_alarm.mp3"
+        else:
+            file_path = r"D:\Robotics Engineering-UniGe\2 anno\First semester\Virtual Reality\Tutorial\Colosseum-main\PythonClient\multirotor\hazard_zone_alarm.mp3"
         pygame.mixer.music.load(file_path)
         pygame.mixer.music.play()
 
@@ -244,15 +250,15 @@ class LidarTest:
     
         # Draw the legend
         pygame.draw.rect(self.screen, (100, 180, 100), (gauge_center_x - 70, legend_y, 12, 12))
-        text = font.render("Safe", True,self.DARK_BLUE)
+        text = font.render("Secure Zone", True,self.DARK_BLUE)
         self.screen.blit(text, (gauge_center_x - 50, legend_y))
     
         pygame.draw.rect(self.screen, (255, 200, 120), (gauge_center_x - 70, legend_y + 20, 12, 12))
-        text = font.render("First Alarm", True,self.DARK_BLUE)
+        text = font.render("Monitor Zone", True,self.DARK_BLUE)
         self.screen.blit(text, (gauge_center_x - 50, legend_y + 20))
     
         pygame.draw.rect(self.screen, (200, 80, 80), (gauge_center_x - 70, legend_y + 40, 12, 12))
-        text = font.render("Danger", True,self.DARK_BLUE)
+        text = font.render("Danger Zone", True,self.DARK_BLUE)
         self.screen.blit(text, (gauge_center_x - 50, legend_y + 40))
     
         # Draw title
@@ -286,6 +292,8 @@ class LidarTest:
         risk_level = "Low" if theta < 1 else "Medium" if theta < 3 else "High"
         self.table_data[tank_id][1] = f"{theta:.2f}"
         self.table_data[tank_id][2] = risk_level
+        if theta > 3:
+            self.play_alarm("danger_zone")
         return [tank_id, f"{theta:.2f}", risk_level]
     
 
@@ -387,19 +395,21 @@ class LidarTest:
                 contours, _ = cv2.findContours(oil_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 
                 oil_detected = False
+                #image_detected = True
                 for contour in contours:
                     if cv2.contourArea(contour) > 500:
                         x, y, w, h = cv2.boundingRect(contour)
                         cv2.rectangle(thermal_image_copy, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         oil_detected = True
+                        #image_detected = False
                 if oil_detected:
-                        self.play_alarm()
-                        self.table_data[5][1] = " - "
-                        self.table_data[5][2] = "Danger"
-                        
+                        self.play_alarm("hazard_path")                                             
                         q.put({
-                            "updated_row": [5, " - ", "Danger"],  # Store updated table row
+                            "updated_row": [5, " - ", "Oil Spill"],  # Store updated table row
                         })
+
+                        cv2.imwrite("oil_spill_detected.png", thermal_image_copy)
+                        cv2.imshow("Captured Oil Spill", cv2.imread("oil_spill_detected.png"))
 
                 cv2.namedWindow("Oil Leak Detection", cv2.WINDOW_NORMAL)
                 cv2.resizeWindow("Oil Leak Detection",570, 365)
