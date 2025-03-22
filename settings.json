@@ -91,7 +91,7 @@
             "WindowID": 1,
             "ImageType" : 0,
             "CameraName": "thermal_camera",
-            "Visible": true
+            "Visible": false
         }
     ]
 
