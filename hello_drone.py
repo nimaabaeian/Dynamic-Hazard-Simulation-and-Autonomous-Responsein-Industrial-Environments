@@ -12,6 +12,7 @@ import sys
 import cv2
 import multiprocessing
 import pygame
+from pythonosc.udp_client import SimpleUDPClient
 
  
  
@@ -55,10 +56,14 @@ class LidarTest:
         self.DARK_BLUE = (0,25,51)
         self.COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]  # Red, Green, Blue
 
-        
+        # UE5 OSC Server Details
+        self.UE5_IP = "127.0.0.1"  # Localhost (change if needed)
+        self.UE5_PORT = 8001       # Must match your UE5 OSC server port
 
+        # Create an OSC Client
+        self.client_UDP = SimpleUDPClient(self.UE5_IP, self.UE5_PORT)
         
-        
+       
     def execute(self,q):
         print("arming the drone...")
         self.client.armDisarm(True)  #Rotate the propellor
@@ -123,6 +128,15 @@ class LidarTest:
             file_path = r"D:\Robotics Engineering-UniGe\2 anno\First semester\Virtual Reality\Tutorial\Colosseum-main\PythonClient\multirotor\hazard_zone_alarm.mp3"
         pygame.mixer.music.load(file_path)
         pygame.mixer.music.play()
+
+    def send_UDP(self, number):
+        try:
+            number = float(number)  # Convert input to float
+            self.client_UDP.send_message("/VR_server", number)  # OSC address and value
+            print(f"Sent: {number} to /VR_server")
+        except ValueError:
+            print("Invalid number. Please enter a valid float or integer.")
+
 
     def draw_table(self):
         # Create a smaller, more aesthetic table
@@ -294,6 +308,7 @@ class LidarTest:
         self.table_data[tank_id][2] = risk_level
         if theta > 3:
             self.play_alarm("danger_zone")
+            self.send_UDP(tank_id)
         return [tank_id, f"{theta:.2f}", risk_level]
     
 
@@ -374,6 +389,7 @@ class LidarTest:
 
  
     def thermal_camera(self,q):
+        oil_already_detected = False
         while True:
             responses = self.client.simGetImages([airsim.ImageRequest("thermal_camera", airsim.ImageType.Scene, False, False)])
             if responses and responses[0].image_data_uint8:
@@ -395,21 +411,23 @@ class LidarTest:
                 contours, _ = cv2.findContours(oil_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 
                 oil_detected = False
-                #image_detected = True
                 for contour in contours:
                     if cv2.contourArea(contour) > 500:
                         x, y, w, h = cv2.boundingRect(contour)
                         cv2.rectangle(thermal_image_copy, (x, y), (x + w, y + h), (0, 255, 0), 2)
                         oil_detected = True
-                        #image_detected = False
-                if oil_detected:
-                        self.play_alarm("hazard_path")                                             
+                if oil_detected and not oil_already_detected:
+                        self.play_alarm("hazard_path")
+                        self.send_UDP(5)
+                        
                         q.put({
                             "updated_row": [5, " - ", "Oil Spill"],  # Store updated table row
                         })
 
                         cv2.imwrite("oil_spill_detected.png", thermal_image_copy)
                         cv2.imshow("Captured Oil Spill", cv2.imread("oil_spill_detected.png"))
+
+                        oil_already_detected = True # set flag so it only runs once
 
                 cv2.namedWindow("Oil Leak Detection", cv2.WINDOW_NORMAL)
                 cv2.resizeWindow("Oil Leak Detection",570, 365)
