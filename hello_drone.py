@@ -388,10 +388,10 @@ class LidarTest:
                 self.needle_angle = data["needle_angle"]
 
  
-    def thermal_camera(self,q):
+    def camera(self,q):
         oil_already_detected = False
         while True:
-            responses = self.client.simGetImages([airsim.ImageRequest("thermal_camera", airsim.ImageType.Scene, False, False)])
+            responses = self.client.simGetImages([airsim.ImageRequest("camera", airsim.ImageType.Scene, False, False)])
             if responses and responses[0].image_data_uint8:
                 thermal_image = np.frombuffer(responses[0].image_data_uint8, dtype=np.uint8)
                 thermal_image = thermal_image.reshape(responses[0].height, responses[0].width, 3)
@@ -450,9 +450,9 @@ class LidarTest:
  
         print("Done!\n")
  
-def thermal_camera_p1(q):
+def camera_p1(q):
     lidar_test = LidarTest()
-    lidar_test.thermal_camera(q)
+    lidar_test.camera(q)
 def execute_p2(q):
     lidar_test = LidarTest()
     lidar_test.execute(q)
@@ -466,7 +466,7 @@ def draw_table_p3(q):
 if __name__ == "__main__":
     q = multiprocessing.Queue()
 
-    p1 = multiprocessing.Process(target=thermal_camera_p1, args=(q,))
+    p1 = multiprocessing.Process(target=camera_p1, args=(q,))
     p2 = multiprocessing.Process(target=execute_p2, args=(q,))
     p3 = multiprocessing.Process(target=draw_table_p3, args=(q,))
     try:
