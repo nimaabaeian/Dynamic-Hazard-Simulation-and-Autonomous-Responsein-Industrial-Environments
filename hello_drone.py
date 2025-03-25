@@ -397,7 +397,7 @@ class LidarTest:
                 thermal_image = thermal_image.reshape(responses[0].height, responses[0].width, 3)
 
                 if np.mean(thermal_image) < 40:
-                    print("Camera shows most of the screen black")
+                    print("Camera shows black screen") # Skip processing when the simulation is at the beginning
                     continue
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
