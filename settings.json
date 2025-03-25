@@ -10,19 +10,6 @@
                 "Altitude": 50
                 },
             "Sensors": {
-                "LidarSensor1": {
-                    "SensorType": 6,
-                    "Enabled" : true,
-                    "NumberOfChannels": 16,
-                    "RotationsPerSecond": 0,
-                    "PointsPerSecond": 75,
-                    "X": 0, "Y": 0, "Z": -1,
-                    "Roll": 0, "Pitch": -90, "Yaw" : 0,
-                    "VerticalFOVUpper": -15,
-                    "VerticalFOVLower": -25,
-                    "DrawDebugPoints": false,
-                    "DataFrame": "SensorLocalFrame"
-                },
                 "Distance_1": {
                     "SensorType": 5,
                     "Enabled" : true,
@@ -58,12 +45,10 @@
                     "X": -10, "Y": 10, "Z": -1,
                     "Yaw": 0, "Pitch": -90, "Roll": 0,
                     "DrawDebugPoints": true
-                }
-
-            
+                }            
             },
             "Cameras": {
-                "thermal_camera":{ 
+                "camera":{ 
                         "CaptureSettings": 
                         [
                             {
@@ -85,15 +70,7 @@
             }
 
         }
-    },
-    "SubWindows": [
-        {
-            "WindowID": 1,
-            "ImageType" : 0,
-            "CameraName": "thermal_camera",
-            "Visible": false
-        }
-    ]
+    }
 
 }
 
