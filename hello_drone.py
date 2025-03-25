@@ -396,6 +396,10 @@ class LidarTest:
                 thermal_image = np.frombuffer(responses[0].image_data_uint8, dtype=np.uint8)
                 thermal_image = thermal_image.reshape(responses[0].height, responses[0].width, 3)
 
+                if np.mean(thermal_image) < 40:
+                    print("Camera shows most of the screen black")
+                    continue
+
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     print("Exiting thermal camera")
                     break
