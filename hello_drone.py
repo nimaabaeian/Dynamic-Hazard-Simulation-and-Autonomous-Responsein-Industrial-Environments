@@ -1,35 +1,22 @@
-﻿
-from turtle import goto
-import setup_path
+﻿from pythonosc.udp_client import SimpleUDPClient
 import airsim
 import math
 import time 
-import argparse
-import pprint
-import numpy
 import numpy as np
 import sys
 import cv2
 import multiprocessing
 import pygame
-from pythonosc.udp_client import SimpleUDPClient
 
- 
- 
-# Makes the drone fly and get Lidar data
- 
-class LidarTest:
+# decleare the class
+class IndustrialHazardDetector:
  
     def __init__(self):
- 
         # connect to the AirSim simulator
         self.client = airsim.MultirotorClient()
         self.client.confirmConnection()
         self.client.enableApiControl(True)
-
-        #pygame intialisation
         
-           
         self.table_data = [
             ["Tank ID", "Tilt Angle", "Risk Level"],  # Headers (Fixed)
             ["Tank 1", " ", " "],
@@ -38,7 +25,6 @@ class LidarTest:
             ["Tank 4", " ", " "],
             ["Tank 5", " ", " "]
         ]
-
 
         self.flight_data = [
             ["Position", "X:", "Y:", "Z:"],  # Headers (Fixed)
@@ -49,7 +35,6 @@ class LidarTest:
         self.CELL_HEIGHT = 60
         self.START_X = 10  # Starting position (x)
         self.START_Y = 30  # Starting position (y)
-        #define the starting position (top-left corner) for rendering the table on the Pygame window.
         self.WHITE = (255, 255, 255)
         self.GRAY = (128,128,128)
         self.BLACK = (0, 0, 0)
@@ -63,7 +48,6 @@ class LidarTest:
         # Create an OSC Client
         self.client_UDP = SimpleUDPClient(self.UE5_IP, self.UE5_PORT)
         
-       
     def execute(self,q):
         print("arming the drone...")
         self.client.armDisarm(True)  #Rotate the propellor
@@ -78,7 +62,6 @@ class LidarTest:
             (918.35094124, 2193.88966258)
         ]
         
-       
         for i, (x, y) in enumerate(tank_positions, start=1):
             x = x - intial_pose[0]
             y = y -  intial_pose[1]
@@ -97,12 +80,10 @@ class LidarTest:
             })
   
     def fight_pose(self,q):
-        
         self.pose = self.client.getMultirotorState().kinematics_estimated
         updated_drone_position =self.pose.position
         updated_drone_orientation = self.pose.orientation
         roll,pitch,yaw = airsim.to_eularian_angles(updated_drone_orientation)
-
 
         q.put({
                 "orientation":
@@ -119,9 +100,7 @@ class LidarTest:
             })
 
     def play_alarm(self,path):
-
         pygame.mixer.init()
-
         if path == "hazard_path":
             file_path = r"D:\Robotics Engineering-UniGe\2 anno\First semester\Virtual Reality\Tutorial\Colosseum-main\PythonClient\multirotor\danger_alarm.mp3"
         else:
@@ -174,6 +153,7 @@ class LidarTest:
             bg_color = (204,229, 255) if row % 2 == 0 else (204, 204, 255)
             row_y = start_y + row * (cell_height + row_gap)  # Adjust row position with gap
             draw_row(row_y, bg_color, self.table_data[row])
+
     def draw_flight_data_table(self):
         # Create a smaller, more aesthetic table
         cell_width = 105  # Reduced cell width
@@ -212,15 +192,14 @@ class LidarTest:
              # Draw the filled polygon
             pygame.draw.polygon(self.screen, color, points)
 
-            # Draw the colored sections as filled arcs
-            # Green section (0-5 degrees)
+        # Draw the colored sections as filled arcs
+        # Green section (0-5 degrees)
         draw_filled_arc((100, 180, 100), math.pi - math.pi/10, math.pi)
 
-            # Yellow section (5-10 degrees)
+        # Yellow section (5-10 degrees)
         draw_filled_arc((255, 200, 120), math.pi - math.pi/10 -math.pi/5,  math.pi - math.pi/10)
-            # Red section (10-15 degrees)
+        # Red section (10-15 degrees)
         draw_filled_arc((200, 80, 80), 0,math.pi - math.pi/10 -math.pi/5)
-
         # Draw the gauge markings
         self.draw_gauge_markings(gauge_center_x, gauge_center_y, radius)
     
@@ -238,8 +217,6 @@ class LidarTest:
                     pass  # If conversion fails, skip to the next row
   
         # Calculate angle for the needle
-
-        
         if current_theta > 10:
             current_theta = 10  # Cap at max value
         self.needle_angle = 0 + (current_theta / 10)*math.pi
@@ -247,8 +224,7 @@ class LidarTest:
         q.put({
             "needle_angle":self.needle_angle
             })
-        #print(self.needle_angle)
-    
+        
         # Draw needle
         end_x = gauge_center_x - needle_length * math.cos(self.needle_angle)
         end_y = gauge_center_y - needle_length * math.sin(self.needle_angle)
@@ -314,7 +290,6 @@ class LidarTest:
 
 
     def get_theta(self):
-         
         sensor_data_1 = self.client.getDistanceSensorData("Distance_1")
         (x_1, y_1) = (sensor_data_1.relative_pose.position.x_val, sensor_data_1.relative_pose.position.y_val)
         sensor_data_3 = self.client.getDistanceSensorData("Distance_3")
@@ -355,7 +330,6 @@ class LidarTest:
             self.draw_flight_data_table()
             pygame.display.flip()  # Refresh display
 
- 
             # Handle quit event
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -363,8 +337,8 @@ class LidarTest:
  
         pygame.quit()
         sys.exit()
+
     def update_table_from_queue(self, q):
-        
         while not q.empty():
             data = q.get()
             
@@ -375,7 +349,6 @@ class LidarTest:
                 self.table_data[tank_id][1] = inclination
                 self.table_data[tank_id][2] = risk_level
                     
-            
             # Check if this data has position and orientation info
             if "position" in data and "orientation" in data:
                 self.flight_data[0][1] = f"X: {data['position']['x']:.2f}"
@@ -387,7 +360,6 @@ class LidarTest:
             if "needle_angle" in data:
                 self.needle_angle = data["needle_angle"]
 
- 
     def camera(self,q):
         oil_already_detected = False
         while True:
@@ -435,32 +407,25 @@ class LidarTest:
 
                 cv2.namedWindow("Oil Leak Detection", cv2.WINDOW_NORMAL)
                 cv2.resizeWindow("Oil Leak Detection",570, 365)
-                cv2.imshow("Oil Leak Detection", thermal_image_copy)
-                
+                cv2.imshow("Oil Leak Detection", thermal_image_copy)           
  
     def stop(self):
- 
         airsim.wait_key('Press any key to reset to original state')
- 
         self.client.armDisarm(False)
- 
         self.client.reset()
- 
         self.client.enableApiControl(False)
- 
         print("Done!\n")
  
 def camera_p1(q):
-    lidar_test = LidarTest()
-    lidar_test.camera(q)
+    camera_test = IndustrialHazardDetector()
+    camera_test.camera(q)
 def execute_p2(q):
-    lidar_test = LidarTest()
-    lidar_test.execute(q)
+    move_test = IndustrialHazardDetector()
+    move_test.execute(q)
 def draw_table_p3(q):
-    lidar_test = LidarTest()
-    lidar_test.run(q)
+    monitor_test = IndustrialHazardDetector()
+    monitor_test.run(q)
        
- 
  
 # main
 if __name__ == "__main__":
@@ -477,7 +442,7 @@ if __name__ == "__main__":
         p2.join()
         p3.join()
     finally:
-        lidar_test = LidarTest()
-        lidar_test.stop()
+        stop_test = IndustrialHazardDetector()
+        stop_test.stop()
         print("Stopping the drone")
         
