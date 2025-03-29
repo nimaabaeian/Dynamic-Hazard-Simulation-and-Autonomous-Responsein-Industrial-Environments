@@ -47,7 +47,8 @@ https://github.com/user-attachments/assets/60b22580-89cb-4d7a-ab49-d0d0461e9d55
 ### Control Widget of the environment
 https://github.com/user-attachments/assets/edff99fe-8463-43d5-9d90-60f9e2354e8b
 ### From the UAV Perspective
+https://github.com/user-attachments/assets/07fb9748-cbe4-4483-9443-df15e597bc39
 ### From the UGV Perspective
-
+https://github.com/user-attachments/assets/0ceb7702-e05e-436e-bd82-d73ab061bf58
 
 
