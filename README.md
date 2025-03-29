@@ -18,8 +18,21 @@ Blender 4.3 was used to model custom assets, such as the containment barriers, w
 
 ---
 ## Installation
-'''bash
+- Install Visual Studio Community 2022 along with necessary components, including Desktop Development with C++, the Windows 11 SDK, and the latest .NET Framework SDK
+- Clone the AirSim
+```bash
 git clone https://github.com/CodexLabsLLC/Colosseum.git
-'''
+```
+- Build AirSim in Developer Command Prompt for VS 2022
+```bash
+dir your_directory/Colosseum
+build.cmd
+```
+- Create a C++ Unreal Engine project
+- Copy the Plugin from your_directory/unreal/AirSim to your_project folder
+
+
+
+
 
 
