@@ -40,8 +40,14 @@ The UGV was used to demonstrate real-time communication and coordination with th
 - Create the Spline Blueprint
 - Create the Rover (UGV) Blueprint
 ### Real-time Communication
-- Enable the OSC plugin to create a UDP socket server with a specific name, IP address, and port number. 
-
+- Enable the OSC plugin to create a UDP socket server with a specific name, IP address, and port number that helps the real-time communication between UAV and UGV.
+## Result
+### Cinematic Graphic view of the environment
+https://github.com/user-attachments/assets/60b22580-89cb-4d7a-ab49-d0d0461e9d55
+### Control Widget of the environment
+https://github.com/user-attachments/assets/edff99fe-8463-43d5-9d90-60f9e2354e8b
+### From the UAV Perspective
+### From the UGV Perspective
 
 
 
