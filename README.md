@@ -20,5 +20,6 @@ Blender 4.3 was used to model custom assets, such as the containment barriers, w
 ## Installation
 '''bash
 git clone https://github.com/CodexLabsLLC/Colosseum.git
+'''
 
 
