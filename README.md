@@ -11,8 +11,14 @@ Additionally, the project includes the development of a UGV (Unmanned Ground Veh
 ## Tools
 ### Unreal Engine 5.2
 Unreal Engine 5.2 was the primary tool for creating the environment, modeling the landscape, and integrating various systems, such as the floating roof tanks, UAV, and UGV. 
+### AirSim
+AirSim is a plugin for Unreal Engine used to simulate UAVs or UGVs in the Unreal Engine environment. It is provided by Microsoft but was forked to Colosseum for the latest versions of Unreal Engine. For Unreal Engine 5.2, it can be obtained from the [Colosseum GitHub repository](https://github.com/CodexLabsLLC/Colosseum) main branch.
 ### Blender 4.3
 Blender 4.3 was used to model custom assets, such as the containment barriers, which were missing from the available asset packs. These assets were then integrated into the Unreal Engine environment to complete the refinery setup. It was also used to obtain the raw version of the Unmanned Ground Vehicle(UGV) model and export it to UE's specifications.
-### AirSim
-AirSim is a plugin for Unreal Engine used to simulate UAVs or UGVs in the Unreal Engine environment. It is provided by Microsoft but was forked to Colosseum for the latest versions of Unreal Engine. For Unreal Engine 5.2, it can be obtained from the [Colosseum GitHub repository](https://github.com/CodexLabsLLC/Colosseum) main branch
+
+---
+## Installation
+'''bash
+git clone https://github.com/CodexLabsLLC/Colosseum.git
+
 
