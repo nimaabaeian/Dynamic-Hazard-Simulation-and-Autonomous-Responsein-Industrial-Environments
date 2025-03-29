@@ -17,7 +17,8 @@ AirSim is a plugin for Unreal Engine used to simulate UAVs or UGVs in the Unreal
 Blender 4.3 was used to model custom assets, such as the containment barriers, which were missing from the available asset packs. These assets were then integrated into the Unreal Engine environment to complete the refinery setup. It was also used to obtain the raw version of the Unmanned Ground Vehicle(UGV) model and export it to UE's specifications.
 
 ---
-## Installation
+## Installation and Procedure
+### UAV
 - Install Visual Studio Community 2022 along with necessary components, including Desktop Development with C++, the Windows 11 SDK, and the latest .NET Framework SDK
 - Clone the AirSim
 ```bash
@@ -30,8 +31,16 @@ build.cmd
 ```
 - Create a C++ Unreal Engine project
 - Copy the Plugin from your_directory/unreal/AirSim to your_project folder
-
-
+- Modify the Python Client and JSON File
+- Create a Python environment setup
+- Use the multiprocessing Python module for real-time data processing
+ ### UGV
+The UGV was used to demonstrate real-time communication and coordination with the UAV 
+- Add the UGV model to the Unreal Engine project
+- Create the Spline Blueprint
+- Create the Rover (UGV) Blueprint
+### Real-time Communication
+- Enable the OSC plugin to create a UDP socket server with a specific name, IP address, and port number. 
 
 
 
