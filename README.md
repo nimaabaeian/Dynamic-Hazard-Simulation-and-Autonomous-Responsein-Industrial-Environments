@@ -10,6 +10,12 @@ Additionally, the project includes the development of a UGV (Unmanned Ground Veh
 You can find the entire project [document here](https://unigeit-my.sharepoint.com/:f:/g/personal/s6020433_studenti_unige_it/EqkfBAJ-7AFJpvaSTvC3uBEBt8X0KG-oGZL-6dwvnjM8lQ?e=TwoaZ4)
 
 ---
+## Authors
+- **Josue Enrique Tinoco Salvatierra** - s5835667@studenti.unige.it
+- **Dikshant Thakur** - s5943225@studenti.unige.it
+- **Nima Abaeian** - s5967579@studenti.unige.it
+- **Girum Molla Desalegn** - s6020433@studenti.unige.it
+---
 ## Tools
 ### Unreal Engine 5.2
 Unreal Engine 5.2 was the primary tool for creating the environment, modeling the landscape, and integrating various systems, such as the floating roof tanks, UAV, and UGV. 
