@@ -7,6 +7,8 @@ A dynamic system is implemented to track the movement of the floating storage ta
 
 Additionally, the project includes the development of a UGV (Unmanned Ground Vehicle) that can communicate in real-time with the UAV
 
+You can find the entire project [document here](https://unigeit-my.sharepoint.com/:f:/g/personal/s6020433_studenti_unige_it/EqkfBAJ-7AFJpvaSTvC3uBEBt8X0KG-oGZL-6dwvnjM8lQ?e=TwoaZ4)
+
 ---
 ## Tools
 ### Unreal Engine 5.2
