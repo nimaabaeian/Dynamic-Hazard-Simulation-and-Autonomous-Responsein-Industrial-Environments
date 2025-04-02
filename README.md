@@ -1,5 +1,4 @@
 # Dynamic Hazard Simulation and Autonomous Response in Industrial Environments (IPLOM Oil refinery)
----
 ## Project description
 This project presents the design of the IPLOM oil refinery industrial area, including the simulation of the refinery with floating roof storage tanks, pipelines, and containment zones.
 
